@@ -16,6 +16,56 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+var cargarDB = {
+    db: "",
+    initialize: function(){
+        //GENERAMOS LA BBDD
+        this.db = window.openDatabase("localDB", "1.0", "Base de datos de prueba", 2*1024*1024);
+        this.cargarDB();
+    },
+
+    cargarDB: function(){
+        console.log("CARGAMOS LA BBDD YA EXISTENTE");
+        //Transacción
+        this.db.transaction(this.mostrarDB, this.mostrarDBError);
+    },
+
+    mostrarDB: function(tx){
+        var sql = "SELECT * FROM localDB;";
+        console.log("LANZAMOS LA CONSULTA SQL PARA CARGAR LA TABLA CORRESPONDIENTE");
+        tx.executeSql(
+            sql,
+            [], 
+            //Función de resultado OK
+            function(tx, result){
+                console.log("CONSULTA REALIZADA CON EXITO, RECUPERANDO DATOS");
+                if(result.rows.length>0){
+                    for(var i=0; i<result.rows.length; i++){
+                        var fila = result.rows.item(i);
+                        //Aquí actualizaría mi html automáticamente para cargar datos de la BBDD
+                        console.log("ROW "+i+" nombre: "+fila.nombre);
+                        //REVISAR LA RECUPERACIÓN DE DATOS (ALGO FALLA)
+                        //c"<li><a href='./alumnos/ivan.html'><img src='./img/usuario'+i'.png' class='imagenLista'><div class='nombreLista'>"+fila.nombre+"</div><div class='profesionLista'>"+fila.cargo+"</div></a></li>").listview('refresh');
+                        //$("#listaContactos li").append("<li><a href='./alumnos/joaquin.html'><img src='./img/usuario2.png' class='imagenLista'><div class='nombreLista'>"+fila.nombre+"</div><div class='profesionLista'>Alumno</div></a></li>");
+                        $("#listaContactos ul").append("<li>"+i+"</li>").listview('refresh');
+                    }
+                    console.log("LLEGO");
+                }
+            },
+            //Función de error
+            function(tx, error){
+                this.mostrarDBError(error);
+            }
+        );
+    },
+
+    mostrarDBError: function(err){
+        console.log("ERROR DE CARGA DE BBDD "+err.code);
+        console.log("MENSAJE DE ERROR "+err.message);
+    }
+
+};
+
 var confDB = {
     //Propiedades
     existe_db: "",
@@ -34,7 +84,8 @@ var confDB = {
             this.createDB();
         }
         else{
-            console.log("YA EXISTE LA BBDD");
+            console.log("LA BBDD NO EXISTE, SE PROCEDE A CARGAR");
+            cargarDB.initialize();
         }     
     },
    
@@ -79,7 +130,7 @@ var confDB = {
     },
 
     createDBError: function(err){
-        console.log("ERROR DE CREACION DE BBDD"+error.code);
+        console.log("ERROR DE CREACION DE BBDD"+err.code);
     },
 
     createDBSucc: function(){
